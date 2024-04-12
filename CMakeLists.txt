@@ -213,8 +213,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 message(STATUS "The used compiler id: ${CMAKE_CXX_COMPILER_ID}")
 # only gcc is supported at the moment
 if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
-    # TODO: GCC should work now as concurrencpp addded support for it
-    message(FATAL "GNU compiler are currently not supported")
+    target_compile_options(${PROJECT_NAME} PUBLIC -pthread)
 elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
     target_compile_options(${PROJECT_NAME} PUBLIC -pthread)
 else()

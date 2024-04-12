@@ -1,6 +1,8 @@
 # Columbo
 --------
-TODO
+
+Columbo is library that allows users to easily write small C++ programs to create Low-Level End-to-End System-Traces through 
+SimBricks simulations. As such its intended to be used alongside SimBricks. For more details see https://simbricks.github.io/.
 
 ## Building from Source
 Initially you need to ensure that the submodules required for building Columbo are initialized. 
@@ -24,3 +26,11 @@ to build all Columbo targets. Replace `<number-cores>` by the number of cores to
 
 ## Docker (Compose)
 TODO
+
+## Folder structure
+- `configs/`: Contains configuration files for tools that are intended to be used alongside Columbo as well as for Columbo itself.
+- `docker-compose`: Contains a dockerfile for compiling Columbo and docker compose files to allow easily running SimBricks, Columbo as well as external tools like Jaeger simultaneously.
+- `include`: Columbos header files.
+- `libs`: Libraries i.e. submodules Columbo depends on.
+- `source`: Columbos source/implementation files.
+- `tests`: Unittests.

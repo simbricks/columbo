@@ -1,0 +1,89 @@
+#
+# Copyright 2022 Max Planck Institute for Software Systems, and
+# National University of Singapore
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+        endpoint: "0.0.0.0:14278"
+
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+  #prometheusremotewrite:
+  #  endpoint: http://prometheus:9090/api/v1/write
+  #  target_info:
+  #    enabled: true
+
+  debug:
+
+  otlp:
+    endpoint: "jaeger:4317" #gRPC
+    #endpoint: "jaeger:4318" # HTTP
+    tls:
+      insecure: true
+
+connectors:
+  spanmetrics:
+    histogram:
+      explicit:
+        buckets: [100us, 1ms, 2ms, 6ms, 10ms, 100ms, 250ms]
+  #  namespace: span_metrics
+
+processors:
+  tail_sampling:
+    decision_wait: 360s
+    policies: [
+      {
+        name: is-receive-span,
+        type: ottl_condition,
+        ottl_condition: {
+          error_mode: propagate,
+          span: [
+            "attributes[\"kernel-receive\"] == \"true\"",
+          ]
+        }
+      },
+      {
+        name: is-transmit-span,
+        type: ottl_condition,
+        ottl_condition: {
+          error_mode: propagate,
+          span: [
+            "attributes[\"driver-transmit\"] == \"true\"",
+          ]
+        }
+      }
+    ]
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [tail_sampling]
+      exporters: [spanmetrics, otlp]
+    metrics/spanmetrics:
+      receivers: [spanmetrics]
+      exporters: [prometheus]

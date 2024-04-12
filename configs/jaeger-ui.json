@@ -1,0 +1,11 @@
+{
+  "monitor": {
+    "menuEnabled": true
+  },
+  "dependencies": {
+    "menuEnabled": true
+  },
+  "search": {
+    "maxLimit": 3000
+  }
+}

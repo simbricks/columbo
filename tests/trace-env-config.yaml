@@ -1,0 +1,61 @@
+#
+# Copyright 2022 Max Planck Institute for Software Systems, and
+# National University of Singapore
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+
+# NOTE : This config is ONLY for test purposes
+MaxBackgroundThreads: 1
+MaxCpuThreads: 2
+JaegerUrl: "http://jaeger:4318/v1/traces"#"http://localhost:4318/v1/traces"
+LineBufferSize: 1
+EventBufferSize: 60000000
+LogLevel: "trace"
+LinuxFuncIndicator:
+  - "netdev_start_xmit"
+DriverFuncIndicator:
+  - "i40e_lan_xmit_frame"
+KernelTxIndicator:
+  - "dev_queue_xmit"
+KernelRxIndicator:
+  - "ip_list_rcv"
+PciWriteIndicator:
+  - "pci_msix_write_vector_ctrl"
+DriverTxIndicator:
+  - "i40e_lan_xmit_frame"
+DriverRxIndicator:
+  - "i40e_napi_poll"
+SysEntryIndicator:
+  - "entry_SYSCALL_64"
+BlacklistFunctions:
+  - "sjkdgfkdsjgfjk"
+TypesToFilter:
+  - "kHostMmioCRT"
+  - "kHostMmioCWT"
+SymbolTables:
+  - Identifier: "Linuxvm-Symbols"
+    Path: "tests/linux_dumps/vmlinux-image-syms.dump"
+    AddressOffset: 0
+    Type: kSyms
+  - Identifier: "Nicdriver-Symbols"
+    Path: "tests/linux_dumps/i40e-image-syms.dump"
+    AddressOffset: 18446744072098938880 #0xffffffffa0000000ULL
+    Type: kSyms

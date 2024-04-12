@@ -1,0 +1,216 @@
+#
+# Copyright 2022 Max Planck Institute for Software Systems, and
+# National University of Singapore
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+
+MaxBackgroundThreads: 1
+MaxCpuThreads: 5
+JaegerUrl: "http://otel_collector:14278/v1/traces"
+#JaegerUrl: "http://jaeger:4318/v1/traces"
+#JaegerUrl: "http://localhost:4318/v1/traces"
+LineBufferSize: 1
+EventBufferSize: 1000
+LogLevel: "info"
+TypesToFilter:
+  - "kHostInstrT"
+  - "kSimProcInEventT"
+  - "kSimSendSyncT"
+  #- "kHostMmioCRT"
+  #- "kHostMmioCWT"
+  #- "kHostMmioImRespPoWT"
+  #- "kHostMmioRT"
+  #- "kHostMmioWT"
+  #- "kNicMmioRT"
+  #- "kNicMmioWT"
+SymbolTables:
+  - Identifier: "Linuxvm-Symbols"
+    #Path: "/config/dir/linux_dumps/vmlinux-image-syms.dump"
+    #Path: "/usr/src/data-folder/vmlinux-image-syms.dump"
+    Path: "linux_dumps/vmlinux-image-syms.dump"
+    AddressOffset: 0
+    Type: kSyms
+      #- Identifier: "Homer-Module-Symbols"
+      #  Path: "/config/dir/linux_dumps/homa-mod.dump"
+      #  AddressOffset: 18446744072099278848 # FFFFFFFFA0053000
+      #  Type: kSyms
+      #- Identifier: "Homer-Linux-Symbols"
+      #  Path: "/config/dir/linux_dumps/vmlinux-image-homer-syms.dump"
+      #  AddressOffset: 0
+      #  Type: kSyms
+      #- Identifier: "Homer-Nicdriver-Symbols"
+      #  Path: "/config/dir/linux_dumps/i40e-homa.dump"
+      #  #Path: "linux_dumps/i40e-image-syms.dump"
+      #  AddressOffset: 18446744072098938880 #0xffffffffa0000000ULL
+      #  Type: kSyms
+  - Identifier: "Nicdriver-Symbols"
+    #Path: "/config/dir/linux_dumps/i40e-image-syms.dump"
+    #Path: "/usr/src/data-folder/i40e-image-syms.dump"
+    Path: "linux_dumps/i40e-image-syms.dump"
+    AddressOffset: 18446744072098938880 #0xffffffffa0000000ULL
+    Type: kSyms
+LinuxFuncIndicator:
+  - "__sys_socket"
+  - "__x64_sys_socket"
+  - "sock_create"
+  - "__sys_bind"
+  - "__x64_sys_bind"
+  - "__x64_sys_connect"
+  - "__sys_connect"
+  - "tcp_release_cb"
+  - "tcp_init_sock"
+  - "tcp_init_xmit_timers"
+  - "tcp_v4_connect"
+  - "ip_route_output_key_hash"
+  - "tcp_connect"
+  - "tcp_fastopen_defer_connect"
+  - "ipv4_dst_check"
+  - "tcp_sync_mss"
+  - "tcp_initialize_rcv_mss"
+  - "tcp_write_queue_purge"
+  - "tcp_clear_retrans"
+  - "tcp_transmit_skb"
+  - "__tcp_transmit_skb"
+  - "tcp_v4_send_check"
+  - "__tcp_v4_send_check"
+  - "ip_queue_xmit"
+  - "__ip_queue_xmit"
+  - "ip_local_out"
+  - "__ip_local_out"
+  - "ip_output"
+  - "__ip_finish_output"
+  - "dev_queue_xmit"
+  - "__dev_queue_xmit"
+  - "skb_network_protocol"
+  - "eth_type_vlan"
+  - "netdev_start_xmit"
+DriverFuncIndicator:
+  - "i40e_features_check"
+  - "i40e_lan_xmit_frame"
+  - "i40e_maybe_stop_tx"
+  - "vlan_get_protocol"
+  - "dma_map_single_attrs"
+  - "dma_map_page_attrs"
+  - "i40e_maybe_stop_tx"
+KernelTxIndicator:
+  - "__sys_sendto"
+  - "__sys_sendmsg"
+  - "dev_hard_start_xmit"
+  - "netdev_start_xmit"
+  - "dev_queue_xmit"
+KernelRxIndicator:
+  #- "recvfrom"
+  #- "__sys_recvmsg"
+  #- "___sys_recvmsg"
+  #- "__x64_sys_recvmsg"
+  - "netif_receive_skb_list_internal"
+  #- "ip_recv"
+  #- "ip_list_rcv"
+  #- "netif_receive_skb"
+  #- "netif_rx"
+  #- "net_rx_action"
+PciWriteIndicator:
+  - "pci_msix_write_vector_ctrl"
+  - "__pci_write_msi_msg"
+DriverTxIndicator:
+  - "i40e_lan_xmit_frame"
+DriverRxIndicator:
+  - "i40e_napi_poll"
+  - "i40e_finalize_xdp_rx"
+SysEntryIndicator:
+  - "entry_SYSCALL_64"
+  - "error_entry"
+  - "entry_SYSCALL_64_safe_stack"
+BlacklistFunctions:
+  - "match_strlcpy"
+  - "__const_udelay"
+  - "static_key_disable"
+  - "__put_page"
+  - "relock_page_lruvec_irqsave"
+  - "xas_move_index"
+  - "xas_set_offset"
+  - "blk_account_io_merge_bio"
+  - "biovec_phys_mergeable.isra.0"
+  - "vmalloc_node"
+  - "__kfifo_poke_n"
+  - "__count_numa_events.isra.0"
+  - "use_mwaitx_delay"
+  - "orc_sort_cmp"
+  - "_compound_head"
+  - "radix_tree_node_ctor"
+  - "xa_is_node"
+  - "xa_load"
+  - "xas_load"
+  - "xas_start"
+  - "xas_error"
+  - "xa_is_node"
+  - "xas_descend"
+  - "xa_is_sibling"
+  - "xas_find"
+  - "xas_next_entry"
+  - "xas_move_index"
+  - "__nr_to_section"
+  - "pud_alloc"
+  - "pud_offset"
+  - "pmd_alloc"
+  - "pmd_offset.isra.0"
+  - "pud_flags"
+  - "is_swap_pmd"
+  - "pmd_flags"
+  - "pmd_none_or_trans_huge_or_clear_bad"
+  - "pmd_flags"
+  - "pmd_flags"
+  - "do_swap"
+  - "orc_sort_swap"
+  - "____cache_alloc"
+  - "kobject_namespace"
+  - "kobj_ns_ops"
+  - "kobj_child_ns_ops"
+  - "kobject_get"
+  - "test_bit"
+  - "kernfs_next_descendant_post"
+  - "kernfs_leftmost_descendant"
+  - "kernfs_next_descendant_post"
+  - "up_write"
+  - "arch_atomic64_fetch_add"
+  - "sysfs_add_file_mode_ns"
+  - "__kernfs_create_file"
+  - "kernfs_new_node"
+  - "kernfs_root"
+  - "__down_write_common"
+  - "mod_node_page_state"
+  - "mod_node_state"
+  - "mod_node_page_state"
+  - "mod_node_state"
+  - "mod_node_page_state"
+  - "mod_node_state"
+  - "mod_node_page_state"
+  - "mod_node_state"
+  - "slab_get_obj.isra.0"
+  - "iowrite8"
+  - "ext4_get_group_desc"
+  - "rcu_read_unlock_strict"
+  - "ext4_get_group_info"
+  - "__rcu_read_unlock"
+  - "rcu_read_unlock_strict"
+  - "ext4_get_group_number"
+  - "ext4_inode_table"
+  - "kernel_get_mempolicy"

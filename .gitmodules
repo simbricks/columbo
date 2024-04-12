@@ -1,0 +1,6 @@
+[submodule "libs/concurrencpp"]
+	path = libs/concurrencpp
+	url = https://github.com/David-Haim/concurrencpp.git
+[submodule "libs/opentelemetry-cpp"]
+	path = libs/opentelemetry-cpp
+	url = git@github.com:open-telemetry/opentelemetry-cpp.git

@@ -1,0 +1,128 @@
+#
+# Copyright 2022 Max Planck Institute for Software Systems, and
+# National University of Singapore
+#
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+
+version: "3.5"
+services:
+  jaeger:
+    networks:
+      - tracing
+    # image: jaegertracing/all-in-one:latest
+    image: jaegertracing/all-in-one:1.51
+    volumes:
+      - /local/jakobg/simbricks-fork/trace:/config/dir
+    command: --query.ui-config /config/dir/jaeger-ui.json # --prometheus.query.support-spanmetrics-connector=true
+    environment:
+      - METRICS_STORAGE_TYPE=prometheus
+      - PROMETHEUS_SERVER_URL=http://prometheus:9090
+      - PROMETHEUS_QUERY_SUPPORT_SPANMETRICS_CONNECTOR=true
+      #- PROMETHEUS_QUERY_NAMESPACE=span_metrics
+      #- PROMETHEUS_QUERY_DURATION_UNIT=s
+      - PROMETHEUS_QUERY_NORMALIZE_CALLS=true
+      - PROMETHEUS_QUERY_NORMALIZE_DURATION=true
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+      - "14250:14250"
+      - "14269:14269"
+
+  prometheus:
+    container_name: prometheus
+    networks:
+      - tracing
+    image: prom/prometheus:latest
+    command: --config.file=/etc/prometheus/prometheus.yaml
+    volumes:
+      - /local/jakobg/simbricks-fork/trace/prometheus.yaml:/etc/prometheus/prometheus.yaml
+    ports:
+      - "9090:9090"
+
+  otel_collector:
+    container_name: otel_collector
+    networks:
+      - tracing
+    # image: otel/opentelemetry-collector-contrib:latest
+    image: otel/opentelemetry-collector-contrib:0.91.0
+    volumes:
+      - /local/jakobg/simbricks-fork/trace:/config/dir
+    ports:
+      - "1888:1888" # pprof extension
+      - "8888:8888" # Prometheus metrics exposed by the collector
+      - "8889:8889" # Prometheus exporter metrics
+      - "13133:13133" # health_check extension
+      - "4317:4317" # OTLP gRPC receiver
+      - "4318:4318" # OTLP HTTP receiver
+      - "55679:55679" # zpages extension
+    command: --config /config/dir/otel-collector-config.yaml
+    depends_on:
+      - prometheus
+      - jaeger
+
+  trace:
+    networks:
+      - tracing
+    build:
+      context: trace
+      dockerfile: Dockerfile.trace
+    image:
+      columbo-image
+    container_name: columbo-trace
+    command:
+      - /bin/bash
+      - -c
+      - |
+        time build-docker/exhauster /usr/src/data-folder/gem5-server-log-pipe.pipe /usr/src/data-folder/nicbm-server-log-pipe.pipe /usr/src/data-folder/gem5-client-log-pipe.pipe /usr/src/data-folder/nicbm-client-log-pipe.pipe /usr/src/data-folder/ns3-log-pipe.pipe
+        time build-docker/trace --trace-env-config /config/dir/trace-env-config.yaml --gem5-log-server /usr/src/data-folder/gem5-server-log-pipe.pipe --nicbm-log-server /usr/src/data-folder/nicbm-server-log-pipe.pipe --gem5-log-client /usr/src/data-folder/gem5-client-log-pipe.pipe --nicbm-log-client /usr/src/data-folder/nicbm-client-log-pipe.pipe --ns3-log /usr/src/data-folder/ns3-log-pipe.pipe --gem5-server-events /usr/src/data-folder/gem5-server-events.txt --nicbm-server-events /usr/src/data-folder/nicbm-server-events.txt --gem5-client-events /usr/src/data-folder/gem5-client-events.txt --nicbm-client-events /usr/src/data-folder/nicbm-client-events.txt --ns3-events /usr/src/data-folder/ns3-events.txt
+    #time build-docker/exhauster --nicbm-log-server /usr/src/data-folder/nicbm-server-log-pipe.pipe --nicbm-log-client /usr/src/data-folder/nicbm-client-log-pipe.pipe --ns3-log /usr/src/data-folder/ns3-log-pipe.pipe
+    #time build-docker/exhauster --gem5-log-server /usr/src/data-folder/gem5-server-log-pipe.pipe --nicbm-log-server /usr/src/data-folder/nicbm-server-log-pipe.pipe --gem5-log-client /usr/src/data-folder/gem5-client-log-pipe.pipe --nicbm-log-client /usr/src/data-folder/nicbm-client-log-pipe.pipe --ns3-log /usr/src/data-folder/ns3-log-pipe.pipe
+    volumes:
+      - /local/jakobg/tracing-experiments/wrkdir:/usr/src/data-folder
+      - /local/jakobg/simbricks-fork/trace:/config/dir
+    #depends_on:
+    #  - otel_collector
+
+  simbricks:
+    networks:
+      tracing:
+    image: simbricks/simbricks-gem5opt:jakob
+    container_name: simbricks-test-opt
+    command:
+      - /bin/bash
+      - -c
+        # TODO: use python script to create object dumps
+      - |
+        objdump --syms images/vmlinux > /usr/src/data-folder/vmlinux-image-syms.dump
+        objdump --syms images/kernel/linux-5.15.93/drivers/net/ethernet/intel/i40e/i40e.ko > /usr/src/data-folder/i40e-image-syms.dump
+        make convert-images-raw 
+        time python3 experiments/run.py --verbose --force --cpdir /usr/src/data-folder --workdir /usr/src/data-folder --repo /simbricks --outdir /usr/src/data-folder experiments/pyexps/simple_ntp_exp.py
+
+      # time python3 experiments/run.py --verbose --force --cpdir /usr/src/data-folder --workdir /usr/src/data-folder --repo /simbricks --outdir /usr/src/data-folder experiments/pyexps/trace-dumbbell.py
+    volumes:
+      - /local/jakobg/tracing-experiments/wrkdir:/usr/src/data-folder
+      - /dev/kvm:/dev/kvm
+    privileged: true
+    depends_on:
+      - trace
+
+networks:
+  tracing:

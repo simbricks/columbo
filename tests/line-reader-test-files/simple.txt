@@ -1,0 +1,19 @@
+10 Hallo 327846378
+ajfhkjd dsklhfkdjshf 0x23645 dhsfkjdgsfkg
+
+wkfhkdhfkds
+
+
+Rathausdskjfhdjksf475jkgdfjkb
+
+
+Rathausdskjfhdjksf475jkgdfjkb
+dskjfhdjksfRathaus475jkgdfjkb
+dskjfhdjksf           Rathaus4 75jkgdfjkb
+dskjfhdjksfRathaus475jkgdfjkb 0x sdghsdfjk
+
+1710532120875: system.switch_cpus: T0 : 0xffffffff814cf3c2    : mov        rax, GS:[0x1ac00]
+1710532121125: system.switch_cpus: T0 : 0xffffffff814cf3cb    : cmpxchg    DS:[rdi], rdx 
+1710969526625: system.switch_cpus: T0 : 0xffffffff81088093    : add     rax, GS:[rip + 0x7ef8d4d5]
+1710532121125: system.switch_cpus: T0 : 0xffffffff814cf3cb. 0 :   CMPXCHG_M_R : ldst   t1, DS:[rdi] : MemRead :  D=0xfff
+1710532121250: system.switch_cpus: T0 : 0xffffffff814cf3cb. 1 :   CMPXCHG_M_R : sub   t0, rax, t1 : IntAlu :  D=0x0000000000

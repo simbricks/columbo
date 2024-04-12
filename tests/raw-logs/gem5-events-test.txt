@@ -1,0 +1,6 @@
+1869691991749: system.pc.simbricks_0: simbricks-pci: sending read addr c0080300 size 4 id 94469181196688 bar 0 offs 80300
+1869693118999: system.pc.simbricks_0: simbricks-pci: sending read addr c0080300 size 4 id 94469181196688 bar 0 offs 80300
+1869699347625: system.pc.simbricks_0: simbricks-pci: sending read addr c040000c size 4 id 94469181901728 bar 3 offs c
+1869699662249: system.pc.simbricks_0: simbricks-pci: sending read addr c040001c size 4 id 94469181901920 bar 3 offs 1c
+1967474400999: system.pc.simbricks_0: simbricks-pci: sending write addr c0400010 size 4 id 94469376954304 bar 0 offs 0 posted 1
+1967474526999: system.pc.simbricks_0: simbricks-pci: sending write addr c0400014 size 4 id 94469376954304 bar 0 offs 0 posted 0
